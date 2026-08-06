@@ -1,4 +1,4 @@
-# Prepwork for the canalst live coding interview
+# Prepwork for the Canals' live coding interview
 
 ## Task
 Build a product description matching ML system, that given a set $X$ composed of pairs of raw and canonical descriptions for building products, can produce the "most lilkely" canonical description for unobserved raw descriptions. 
