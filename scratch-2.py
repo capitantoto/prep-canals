@@ -32,7 +32,7 @@ print(data.head().to_markdown())
 canon = data.canonical_description.value_counts()
 
 # %%
-print(f"canon size: %i\n" % len(canon), canon.head())
+print("canon size: %i\n" % len(canon), canon.head())
 
 # %%
 # count words
@@ -87,16 +87,17 @@ def normalize(string: str) -> str:
 
 normalize(data.raw_description.iloc[189])
 
-data["normalized_description"] = data.raw_description.apply(normalize)
+data["normalized_raw_description"] = data.raw_description.apply(normalize)
+data["normalized_canonical_description"] = data.canonical_description.apply(normalize)
 # %%
 """
 4. train test split, stratified 20%
 """
 from sklearn.model_selection import train_test_split
 
-norm_train, norm_test, canon_train, canon_test = train_test_split(
-    data.normalized_description,
-    data.canonical_description,
+X_train, X_test, y_train, y_test = train_test_split(
+    data.normalized_raw_description,
+    data.normalized_canonical_description,
     train_size=0.8,
     random_state=42,
     stratify=data.canonical_description,
