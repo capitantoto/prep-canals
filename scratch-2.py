@@ -104,3 +104,26 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # %%
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+tfv = TfidfVectorizer(ngram_range=(3, 3), analyzer="char_wb").fit([*X_train, *y_train])
+# Q: how often should each canonincal sku and each client description appear for the vectorizer counts?
+
+X_train_vec = tfv.transform(X_train)
+y_train_vec = tfv.transform(set(y_train))
+
+# %%
+sims = X_train_vec @ y_train_vec.T
+(X_train_vec.shape, y_train_vec.shape, sims.shape)
+# %%
+
+
+def tf_repr(string: str, vectorizer: TfidfVectorizer | None = tfv) -> pd.Series:
+    ngrams = vectorizer.vocabulary_
+    scores = vectorizer.transform(string)
+    series = pd.Series(scores, index=ngrams)
+    return series[scores > 0]
+
+
+tf_repr(data.normalized_raw_description[189])
+# %%
