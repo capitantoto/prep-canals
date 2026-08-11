@@ -112,11 +112,11 @@ tfv = TfidfVectorizer(ngram_range=(3, 3), analyzer="char_wb").fit([*X_train, *y_
 X_train_vec = tfv.transform(X_train)
 categories = set(y_train)
 codes = {v: k for k, v in enumerate(categories)}
-y_train_vec = tfv.transform(categories)
+categories_vec = tfv.transform(categories)
 
 # %%
-sims = X_train_vec @ y_train_vec.T
-print(X_train_vec.shape, y_train_vec.shape, sims.shape)
+sims = X_train_vec @ categories_vec.T
+print(X_train_vec.shape, categories_vec.shape, sims.shape)
 # %%
 
 
@@ -154,6 +154,76 @@ assert accuracy_score(truth, preds) == top_k_accuracy_score(truth, S, k=1)
 # equivalent: np.take_along_axis(arr, indices, axis)
 # %%
 
-for i in (1, 2, 3, 5):
+for i in (1, 2, 3, 5, 10, 20):
     print(f"Top {i} accuracy: {(100 * top_k_accuracy_score(truth, S, k=i)):.3f}")
 
+# %%
+# Now on test data
+
+X_test_vec = tfv.transform(X_test)
+
+sims_test = X_test_vec @ categories_vec.T
+print(X_test_vec.shape, categories_vec.shape, sims_test.shape)
+
+preds = sims_test.argmax(axis=1).A1
+truth = y_test.map(codes)
+print(accuracy_score(truth, preds))
+
+# no need for y_test_vec, same eaxct categories as in training
+
+# %%
+S_test = sims_test.toarray()
+for i in (1, 2, 3, 5, 10, 20):
+    print(f"Top {i} accuracy: {(100 * top_k_accuracy_score(truth, S_test, k=i)):.3f}")
+
+# v. good! or in series aform and them a plot:
+hit_rates = pd.Series({i: top_k_accuracy_score(truth, S_test, k=i) for i in range(1, 21)})
+print(hit_rates[:5])
+
+hit_rates[:6].plot(kind="bar")
+# all but 5 covered at k=5 already
+# %%
+# %%
+# One improvement: Consider more ngrams!
+# min length == 2 (ft, in, ...)
+# max length == 4 (xhhw, thhn) or 5? (250ft, xhhw2, ...)
+# Ideally actual cross-validation, for now just co it.
+tfv2 = TfidfVectorizer(ngram_range=(2, 4), analyzer="char_wb").fit([*X_train, *y_train])
+
+# %%
+X_train_vec2 = tfv2.transform(X_train)
+categories_vec2 = tfv2.transform(categories)
+sims2 = X_train_vec2 @ categories_vec2.T
+preds2 = sims2.argmax(axis=1).A1
+truth = y_train.map(codes)
+accuracy_score(truth, preds2)
+
+# %%
+# hmm worst train perf is not very good, maybe in test? doubt it.
+X_test_vec2 = tfv2.transform(X_test)
+sims_test2 = X_test_vec2 @ categories_vec2.T
+preds_test2 = sims_test2.argmax(axis=1).A1
+accuracy_score(y_test.map(codes), preds_test2)
+# %%
+# no improvement, really... let's check some misses
+fails = y_test.map(codes).ne(preds)  # preds, noit 2, the first vectorizer did good enough
+reverse_codes = {code: sku for sku, code in codes.items()}
+test_df = pd.DataFrame(
+    {
+        "X": X_test,
+        "y": y_test,
+        "pred": pd.Series(preds).map(reverse_codes).values,  # .values so indexes align correctly
+    }
+)
+test_df["match"] = ~fails
+"""
+y: "copper elbow 45 degree 2 in" ; pred: "copper elbow 45 degree 1 in"
+- Marginal difference, single char, top retrieval not [perfect but second-fifth usually are
+
+Others: removing dot '.' killed dfecimal numbers 1.25 -> 125 instead of 1 1/4
+Others: mangl;ed up lengths (50ft != 500ft)
+Others: cplg -> coupling not identified in abbreviations
+...
+Can improve, won't do just now. SHould consider dimension and measure extraction specifically probably, and/or char vs char_wb ( to get ngrams across the measure-dimension pair of consecutive 'words
+')
+"""
