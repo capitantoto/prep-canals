@@ -21,6 +21,7 @@ On goodness of fit, let's consider two metrics:
 7. test it!
 """
 
+# %%
 import re
 from collections import Counter
 
@@ -32,7 +33,7 @@ print(data.head().to_markdown())
 canon = data.canonical_description.value_counts()
 
 # %%
-print("canon size: %i\n" % len(canon), canon.head())
+print(f"canon size: {len(canon)}\n", canon.head())
 
 # %%
 # count words
@@ -80,7 +81,6 @@ def normalize(string: str) -> str:
     # not informative
     removed = ["ea", "bldg"]
     replaced = [replacements.get(word, word) for word in stripped_words if word not in removed]
-    print(replaced)
     # TODO: review more (failing) strings and improve
     return " ".join(replaced)
 
@@ -110,20 +110,30 @@ tfv = TfidfVectorizer(ngram_range=(3, 3), analyzer="char_wb").fit([*X_train, *y_
 # Q: how often should each canonincal sku and each client description appear for the vectorizer counts?
 
 X_train_vec = tfv.transform(X_train)
-y_train_vec = tfv.transform(set(y_train))
+categories = set(y_train)
+codes = {v: k for k, v in enumerate(categories)}
+y_train_vec = tfv.transform(categories)
 
 # %%
 sims = X_train_vec @ y_train_vec.T
-(X_train_vec.shape, y_train_vec.shape, sims.shape)
+print(X_train_vec.shape, y_train_vec.shape, sims.shape)
 # %%
 
 
 def tf_repr(string: str, vectorizer: TfidfVectorizer | None = tfv) -> pd.Series:
-    ngrams = vectorizer.vocabulary_
-    scores = vectorizer.transform(string)
-    series = pd.Series(scores, index=ngrams)
-    return series[scores > 0]
+    scores = vectorizer.transform([string])
+    ngrams = vectorizer.get_feature_names_out()
+    return pd.Series(scores.data, index=ngrams[scores.indices])
 
 
 tf_repr(data.normalized_raw_description[189])
+# %%
+
+from sklearn.metrics import accuracy_score, top_k_accuracy_score
+
+# train score
+preds = sims.argmax(axis=1).flatten()
+truth = y_train.map(codes)
+print(preds.shape, truth.shape)
+print(accuracy_score(truth, preds))
 # %%
