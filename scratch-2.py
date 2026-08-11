@@ -132,8 +132,28 @@ tf_repr(data.normalized_raw_description[189])
 from sklearn.metrics import accuracy_score, top_k_accuracy_score
 
 # train score
-preds = sims.argmax(axis=1).flatten()
+# np.matrix.A1's a property that returns a flattened ndarray... quirky
+preds = sims.argmax(axis=1).A1
 truth = y_train.map(codes)
 print(preds.shape, truth.shape)
 print(accuracy_score(truth, preds))
+
+import numpy as np
+
+# and top_k accuracy
+k = 1
+S = sims.toarray()
+sorted_labels = np.argsort(-S)
+k_preds = sorted_labels[:, :k]
+
+assert all(k_preds.flatten() == preds)
+
+assert accuracy_score(truth, preds) == top_k_accuracy_score(truth, S, k=1)
 # %%
+# np.array([row[indices] for row, indices in zip(sims.toarray(), k_preds)][:5])
+# equivalent: np.take_along_axis(arr, indices, axis)
+# %%
+
+for i in (1, 2, 3, 5):
+    print(f"Top {i} accuracy: {(100 * top_k_accuracy_score(truth, S, k=i)):.3f}")
+
