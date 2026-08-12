@@ -41,10 +41,14 @@ def normalize(query: str) -> str:
 class Matcher:
     def __init__(self, normalizer=normalize, vectorizer=None) -> "Matcher":
         self.normalizer = normalizer
-        self.vectorizer = vectorizer or TfidfVectorizer()
+        # default vectorizer is TF-IDF over trigrams
+        self.vectorizer = vectorizer or TfidfVectorizer(ngram_range=(3, 3), analyzer="char_wb")
 
     def fit(self, queries: list[str], documents: list[str]):
-        self.catalog = {}
+        unique_documents = sorted(set(documents))
+        self.catalog = dict(enumerate(unique_documents))
+        self.vectorizer.fit([*queries, *unique_documents])
+        # self.fitted = True for sklearn duck typing if needed later
 
     def match(self, queries: list[str], k=1) -> list[list[str]]:
         pass
