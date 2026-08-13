@@ -63,7 +63,7 @@ class Matcher:
         return self  # w/o this Matcher().fit() returns None and pipelines break
 
     def match(self, queries: list[str], k=1) -> list[list[Candidate]]:
-        normalized_queries = [normalize(q) for q in queries]
+        normalized_queries = [self.normalizer(q) for q in queries]
         vectorized_queries = self.vectorizer.transform(normalized_queries)
         scores = (vectorized_queries @ self.vectorized_catalog.T).toarray()  # densify for argsort
         top_k_indices = np.argsort(-scores, axis=1)[:, :k]
