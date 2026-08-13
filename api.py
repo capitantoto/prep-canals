@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from matcher import Matcher
+from matcher import Matcher, Candidate
 
 app = FastAPI()
 
@@ -11,11 +11,6 @@ matcher = Matcher.load("data/matcher.dump")
 class MatchRequest(BaseModel):
     queries: list[str]
     k: int = 3
-
-
-class Candidate(BaseModel):
-    sku: str
-    score: float
 
 
 @app.post("/match")
