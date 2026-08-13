@@ -60,6 +60,7 @@ class Matcher:
         self.vectorizer.fit(unique_documents)
         self.vectorized_catalog = self.vectorizer.transform(unique_documents)
         # self.fitted = True for sklearn duck typing if needed later
+        return self  # w/o this Matcher().fit() returns None and pipelines break
 
     def match(self, queries: list[str], k=1) -> list[list[Candidate]]:
         normalized_queries = [normalize(q) for q in queries]
