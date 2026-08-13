@@ -1,11 +1,17 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from matcher import Matcher, Candidate
+from matcher import Candidate, Matcher
 
 app = FastAPI()
 
-matcher = Matcher.load("data/matcher.dump")
+filepath = Path("data/matcher.dump")
+if filepath.exists():
+    matcher = Matcher.load(filepath)
+else:
+    print(f"`{filepath}` should exist. Run python matcher.py first.")
 
 
 class MatchRequest(BaseModel):
