@@ -102,6 +102,8 @@ class Matcher:
 
 
 if __name__ == "__main__":
+    from matcher import Matcher  # so it's dumped w/ correct module name for loading in api.py
+
     data = pd.read_csv("data/pairs.csv")
     X = data.raw_description
     y = data.canonical_description
