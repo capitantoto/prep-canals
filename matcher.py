@@ -79,7 +79,14 @@ class Matcher:
     def evaluate(
         self, queries: list[str], documents: list[str], ks: tuple[int] = (1, 3, 5)
     ) -> dict[str, float]:
-        """HR@K + MRR for K in ks"""
+        """Hit Rate @ K for K in ks"""
+        max_k = max(ks)
+        candidates_lists = self.match(queries, max_k)
+        ranks = [
+            next((i for i, cand in enumerate(candidates) if cand.sku == document), default=None)
+            for candidates, document in zip(candidates_lists, documents, strict=True)
+        ]
+        return {k: sum(r < k for r in ranks) / len(documents) for k in ks}
 
     def save(self, path: Path | None = None) -> None:
         """save (matcher, catalog) artifact"""
