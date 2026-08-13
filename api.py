@@ -10,7 +10,7 @@ matcher = Matcher.load("data/matcher.dump")
 
 class MatchRequest(BaseModel):
     queries: list[str]
-    k: int
+    k: int = 3
 
 
 class Candidate(BaseModel):
