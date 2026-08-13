@@ -13,6 +13,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.10.0",
     "ipykernel<7", # higher versions seem to stall the VSCode Interactive Terminal
     "matplotlib>=3.11.1",
     "pytest>=9.1.1",
