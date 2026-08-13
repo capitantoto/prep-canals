@@ -1,10 +1,10 @@
 import re
 from pathlib import Path
+from typing import NamedTuple
 
+import joblib
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-from typing import NamedTuple
 
 
 class Candidate(NamedTuple):
@@ -90,8 +90,10 @@ class Matcher:
 
     def save(self, path: Path | None = None) -> None:
         """save (matcher, catalog) artifact"""
-        path = path or Path.cwd() / "model.dump"
+        path = path or Path.cwd() / "data/matcher.dump"
+        joblib.dump(self, path)
 
     @classmethod
-    def load(cls, dump) -> "Matcher":
-        pass
+    def load(cls, path: Path) -> "Matcher":
+        path = path or Path.cwd() / "data/matcher.dump"
+        return joblib.load(path)
