@@ -4,11 +4,11 @@ Single test file for matching app
 - test matcher: exact match wins, ...
 - test API: ???"""
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from api import app
-from matcher import Matcher
+from matcher import Matcher, normalize
 
 client = TestClient(app)
 
@@ -25,7 +25,10 @@ def test_match_endpoint():
 
 
 ### Test normalizer ###
-# Parametrize known edge cases from scratch
+@pytest.mark.parametrize("raw", "expected", [("COPPER cplg 3/4 in", " copper coupling 3/4 in")])
+def test_normalize(raw, expected):
+    assert normalize(raw) == expected
+
 
 ### Test Matcher ###
 CATALOG = ["Toy Story 2", "Toy Story 3", "Despicable Me"]
