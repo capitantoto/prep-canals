@@ -4,7 +4,9 @@ from typing import NamedTuple
 
 import joblib
 import numpy as np
+import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
 
 
 class Candidate(NamedTuple):
@@ -52,10 +54,10 @@ class Matcher:
         # default vectorizer is TF-IDF over trigrams
         self.vectorizer = vectorizer or TfidfVectorizer(ngram_range=(3, 3), analyzer="char_wb")
 
-    def fit(self, queries: list[str], documents: list[str]):
+    def fit(self, documents: list[str]):
         unique_documents = sorted(set(documents))
         self.catalog = dict(enumerate(unique_documents))
-        self.vectorizer.fit([*queries, *unique_documents])
+        self.vectorizer.fit(unique_documents)
         self.vectorized_catalog = self.vectorizer.transform(unique_documents)
         # self.fitted = True for sklearn duck typing if needed later
 
@@ -83,10 +85,10 @@ class Matcher:
         max_k = max(ks)
         candidates_lists = self.match(queries, max_k)
         ranks = [
-            next((i for i, cand in enumerate(candidates) if cand.sku == document), default=None)
+            next((i for i, cand in enumerate(candidates) if cand.sku == document), None)
             for candidates, document in zip(candidates_lists, documents, strict=True)
         ]
-        return {k: sum(r < k for r in ranks) / len(documents) for k in ks}
+        return {k: sum(r is not None and r < k for r in ranks) / len(documents) for k in ks}
 
     def save(self, path: Path | None = None) -> None:
         """save (matcher, catalog) artifact"""
@@ -97,3 +99,22 @@ class Matcher:
     def load(cls, path: Path) -> "Matcher":
         path = path or Path.cwd() / "data/matcher.dump"
         return joblib.load(path)
+
+
+if __name__ == "__main__":
+    data = pd.read_csv("data/pairs.csv")
+    X = data.raw_description
+    y = data.canonical_description
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        train_size=0.8,
+        random_state=42,
+        stratify=y,
+    )
+    matcher = Matcher()
+    matcher.fit(y_train)
+    train_hr = matcher.evaluate(X_train, y_train)
+    test_hr = matcher.evaluate(X_test, y_test)
+    print("=== TRAIN ===", train_hr, "=== TEST ===", test_hr, sep="\n")
+    matcher.save()
