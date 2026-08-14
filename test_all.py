@@ -25,7 +25,7 @@ def test_match_endpoint():
 
 
 ### Test normalizer ###
-@pytest.mark.parametrize("raw", "expected", [("COPPER cplg 3/4 in", " copper coupling 3/4 in")])
+@pytest.mark.parametrize("raw, expected", [("COPPER cplg 3/4 in", " copper coupling 3/4 in")])
 def test_normalize(raw, expected):
     assert normalize(raw) == expected
 
