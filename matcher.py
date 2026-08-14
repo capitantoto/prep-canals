@@ -49,7 +49,7 @@ def normalize(query: str) -> str:
 
 
 class Matcher:
-    def __init__(self, normalizer=normalize, vectorizer=None) -> "Matcher":
+    def __init__(self, normalizer=normalize, vectorizer=None):
         self.normalizer = normalizer
         # default vectorizer is TF-IDF over trigrams
         self.vectorizer = vectorizer or TfidfVectorizer(ngram_range=(3, 3), analyzer="char_wb")
@@ -80,8 +80,8 @@ class Matcher:
         return results
 
     def evaluate(
-        self, queries: list[str], documents: list[str], ks: tuple[int] = (1, 3, 5)
-    ) -> dict[str, float]:
+        self, queries: list[str], documents: list[str], ks: tuple[int, ...] = (1, 3, 5)
+    ) -> dict[int, float]:
         """Hit Rate @ K for K in ks"""
         max_k = max(ks)
         candidates_lists = self.match(queries, max_k)
