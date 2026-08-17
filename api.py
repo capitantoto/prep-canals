@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from matcher import Candidate, Matcher
+from matcher import Matcher
 
 app = FastAPI()
 
@@ -19,11 +19,17 @@ class MatchRequest(BaseModel):
     k: int = 3
 
 
+class CandidateResponse(BaseModel):
+    sku: str
+    score: float
+
+
 @app.post("/match")
-def match(req: MatchRequest) -> list[list[Candidate]]:
+def match(req: MatchRequest) -> list[list[CandidateResponse]]:
     results = matcher.match(req.queries, req.k)
     return [
-        [Candidate(sku=sku, score=score) for sku, score in candidates] for candidates in results
+        [CandidateResponse(sku=sku, score=score) for sku, score in candidates]
+        for candidates in results
     ]
 
 
