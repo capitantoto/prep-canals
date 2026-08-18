@@ -25,9 +25,24 @@ def test_match_endpoint():
 
 
 ### Test normalizer ###
-@pytest.mark.parametrize("raw, expected", [("COPPER cplg 3/4 in", " copper coupling 3/4 in")])
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        (
+            "THHN Cu 12ga STR BLK 500'",
+            "thhn copper 12 awg stranded black 500 ft",
+        ),  # abbrevs + ' → ft
+        ("COPPER cplg 3/4 in", "copper coupling 3/4 in"),  # more abbrevs, cplg -> coupling
+        ("ITM#5783 xhhw wire", "xhhw wire"),  # SKU tag stripped, no fake 'awg' injected
+        ('3/4" PVC SCH40 pipe', "3/4 in pvc schedule 40 pipe"),  # " → in, sch expansion
+        ("aluminium 6 AWG solid", "aluminum 6 awg solid"),  # spelling variant
+        ("250FT", "250 ft"),  # glued unit split
+        # ("1.25 in copper tee", "1-1/4 in copper tee"),  # decimal → catalog fraction form
+    ],
+)
 def test_normalize(raw, expected):
-    assert normalize(raw) == expected
+    normalized = normalize(raw)
+    assert normalized == expected
 
 
 ### Test Matcher ###

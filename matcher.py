@@ -17,12 +17,15 @@ class Candidate(NamedTuple):
 def normalize(query: str) -> str:
     """Normalize queries to comply with client's document corpus conventions."""
     lowercase = query.lower()
+    lowercase = re.sub(r"(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])", " ", lowercase)
     lowercase = re.sub(r"\bitm#\d+\b", " ", lowercase)  # no item numbers
     abbreviations = {
-        "'": "ft",
+        "'": " ft ",
         # "ft": "feet",  # always ft in our catalog
-        '"': "in",
+        "cplg": "coupling",
+        '"': " in ",
         "#": " awg ",  # TODO: review later on, problematic at 'ITM#1234"
+        "sch": "schedule",
     }
     for abbrev, full in abbreviations.items():
         lowercase = lowercase.replace(abbrev, full)
@@ -34,11 +37,13 @@ def normalize(query: str) -> str:
         "ga": "awg",
         "blu": "blue",
         "grn": "green",
+        "blk": "black",
+        "str": "stranded",
         # materials
         "cu": "copper",
         "al": "aluminum",
+        "aluminium": "aluminum",
         "bv": "ball valve",
-        "sch": "schedule",
         # A to amp or viceversa, 1p/2p to [1|2]-pole, ...
     }
     # not informative
