@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 SKU-matching code for canals'live coding interview.
 
